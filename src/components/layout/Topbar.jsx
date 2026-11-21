@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Languages, Menu, Moon, Plus, Sun } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Languages, LogOut, Menu, Moon, Plus, Sun } from 'lucide-react'
 import { NAV_ITEMS } from '../../utils/constants'
+import { useAuth } from '../../hooks/useAuth'
 import { useFinance } from '../../hooks/useFinance'
 import { useI18n } from '../../hooks/useI18n'
 import MonthPicker from '../common/MonthPicker'
@@ -11,12 +12,19 @@ import Button from '../common/Button'
 
 export default function Topbar({ onMenu }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const { settings, updateSettings } = useFinance()
+  const { logout } = useAuth()
   const { t } = useI18n()
   const [quickAddOpen, setQuickAddOpen] = useState(false)
 
   const current = NAV_ITEMS.find((item) => item.path === location.pathname) || NAV_ITEMS[0]
   const isDark = settings.theme === 'dark'
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <header
@@ -59,6 +67,15 @@ export default function Topbar({ onMenu }) {
         <Button icon={Plus} onClick={() => setQuickAddOpen(true)} className="!px-3 sm:!px-4">
           <span className="hidden sm:inline">{t('dash.quickAdd')}</span>
         </Button>
+        <button
+          type="button"
+          className="btn-icon"
+          onClick={handleLogout}
+          title={t('auth.logout')}
+          aria-label={t('auth.logout')}
+        >
+          <LogOut size={18} />
+        </button>
       </div>
 
       <Modal

@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { NavLink } from 'react-router-dom'
-import { ArrowUpRight, ShieldCheck, X } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { ArrowUpRight, LogOut, ShieldCheck, X } from 'lucide-react'
 import logo from '../../assets/logo.svg'
 import { NAV_ITEMS } from '../../utils/constants'
+import { useAuth } from '../../hooks/useAuth'
 import { useI18n } from '../../hooks/useI18n'
 
 const GROUPS = [
@@ -13,6 +14,14 @@ const GROUPS = [
 
 export default function Sidebar({ open, onClose }) {
   const { t } = useI18n()
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    onClose()
+    navigate('/login', { replace: true })
+  }
 
   const sidebar = (
     <div
@@ -90,6 +99,16 @@ export default function Sidebar({ open, onClose }) {
           >
             Learn more <ArrowUpRight size={12} />
           </a>
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label={t('auth.logout')}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+            style={{ borderColor: 'var(--line-strong)', color: 'var(--muted)' }}
+          >
+            <LogOut size={14} />
+            {t('auth.logout')}
+          </button>
         </div>
       </div>
     </div>

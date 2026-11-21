@@ -1,10 +1,13 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { ConfirmProvider } from './context/ConfirmContext'
 import { FinanceProvider } from './context/FinanceContext'
+import ProtectedRoute from './components/auth/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 
+const Login = lazy(() => import('./pages/Login'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Income = lazy(() => import('./pages/Income'))
 const Expenses = lazy(() => import('./pages/Expenses'))
@@ -32,27 +35,32 @@ function PageFallback() {
 export default function App() {
   return (
     <BrowserRouter>
-      <ToastProvider>
-        <ConfirmProvider>
-          <FinanceProvider>
-            <Suspense fallback={<PageFallback />}>
-              <Routes>
-                <Route element={<AppLayout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="income" element={<Income />} />
-                  <Route path="expenses" element={<Expenses />} />
-                  <Route path="savings" element={<Savings />} />
-                  <Route path="budgets" element={<Budgets />} />
-                  <Route path="transactions" element={<Transactions />} />
-                  <Route path="reports" element={<Reports />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="*" element={<NotFound />} />
-                </Route>
-              </Routes>
-            </Suspense>
-          </FinanceProvider>
-        </ConfirmProvider>
-      </ToastProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <ConfirmProvider>
+            <FinanceProvider>
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route element={<AppLayout />}>
+                      <Route index element={<Dashboard />} />
+                      <Route path="income" element={<Income />} />
+                      <Route path="expenses" element={<Expenses />} />
+                      <Route path="savings" element={<Savings />} />
+                      <Route path="budgets" element={<Budgets />} />
+                      <Route path="transactions" element={<Transactions />} />
+                      <Route path="reports" element={<Reports />} />
+                      <Route path="settings" element={<Settings />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Route>
+                  </Route>
+                </Routes>
+              </Suspense>
+            </FinanceProvider>
+          </ConfirmProvider>
+        </ToastProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
