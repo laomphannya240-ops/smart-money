@@ -1,30 +1,22 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { AlertCircle, ArrowRight, Check, Eye, EyeOff, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react'
 import logo from '../assets/logo.svg'
 import { useAuth } from '../hooks/useAuth'
 import { useI18n } from '../hooks/useI18n'
-
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.075, delayChildren: 0.14 } },
-}
-
-const item = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
-}
-
-const CURRENT_YEAR = new Date().getFullYear()
-
-const inputClass =
-  'w-full rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100'
-const inputErrorClass =
-  'w-full rounded-xl border border-red-300 bg-red-50/60 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-red-300 focus:border-red-400 focus:bg-white focus:ring-4 focus:ring-red-100'
+import {
+  container,
+  CURRENT_YEAR,
+  inputClass,
+  inputErrorClass,
+  item,
+  labelClass,
+  linkClass,
+} from '../components/auth/authStyles'
 
 export default function Login() {
-  const { isAuthenticated, isConfigured, login } = useAuth()
+  const { isAuthenticated, login } = useAuth()
   const { t } = useI18n()
   const location = useLocation()
 
@@ -35,9 +27,7 @@ export default function Login() {
   const shake = useAnimationControls()
 
   useEffect(() => {
-    if (error) {
-      shake.start({ x: [0, -9, 9, -6, 6, 0], transition: { duration: 0.38 } })
-    }
+    if (error) shake.start({ x: [0, -9, 9, -6, 6, 0], transition: { duration: 0.38 } })
   }, [error, shake])
 
   const redirectTo = location.state?.from?.pathname || '/'
@@ -51,12 +41,11 @@ export default function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (busy || !isConfigured) return
+    if (busy) return
 
     setBusy(true)
     setError(null)
     try {
-      // A brief pause makes the loading state visible and avoids flicker.
       await new Promise((resolve) => setTimeout(resolve, 350))
       const result = await login(values)
       if (!result.ok) setError({ field: result.field, message: result.message })
@@ -123,16 +112,9 @@ export default function Login() {
               </p>
             </motion.div>
 
-            {!isConfigured && (
-              <motion.div variants={item} className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800">
-                <strong className="font-semibold">Setup required.</strong> Copy <code>.env.example</code> to <code>.env</code>, set{' '}
-                <code>VITE_OWNER_EMAIL</code> and <code>VITE_OWNER_PASSWORD_HASH</code>, then restart the dev server.
-              </motion.div>
-            )}
-
             <form onSubmit={handleSubmit} noValidate>
               <motion.div variants={item}>
-                <label htmlFor="login-email" className="mb-2 block text-xs font-semibold tracking-wide text-slate-600">
+                <label htmlFor="login-email" className={labelClass}>
                   {t('auth.email')}
                 </label>
                 <input
@@ -151,7 +133,7 @@ export default function Login() {
               </motion.div>
 
               <motion.div variants={item} className="mt-4">
-                <label htmlFor="login-password" className="mb-2 block text-xs font-semibold tracking-wide text-slate-600">
+                <label htmlFor="login-password" className={labelClass}>
                   {t('auth.password')}
                 </label>
                 <div className="relative">
@@ -220,9 +202,9 @@ export default function Login() {
 
                 <motion.button
                   type="submit"
-                  disabled={busy || !isConfigured}
-                  whileHover={busy || !isConfigured ? undefined : { y: -1 }}
-                  whileTap={busy || !isConfigured ? undefined : { scale: 0.99 }}
+                  disabled={busy}
+                  whileHover={busy ? undefined : { y: -1 }}
+                  whileTap={busy ? undefined : { scale: 0.99 }}
                   className="group flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {busy ? (
@@ -240,7 +222,14 @@ export default function Login() {
               </motion.div>
             </form>
 
-            <motion.div variants={item} className="mt-7 flex items-start gap-2.5 rounded-xl bg-slate-50 px-4 py-3">
+            <motion.p variants={item} className="mt-5 text-center text-sm text-slate-500">
+              {t('auth.noAccount')}{' '}
+              <Link to="/register" className={linkClass}>
+                {t('auth.createAccount')}
+              </Link>
+            </motion.p>
+
+            <motion.div variants={item} className="mt-6 flex items-start gap-2.5 rounded-xl bg-slate-50 px-4 py-3">
               <ShieldCheck size={16} className="mt-0.5 shrink-0 text-blue-600" />
               <p className="text-xs leading-relaxed text-slate-500">{t('auth.privateDesc')}</p>
             </motion.div>

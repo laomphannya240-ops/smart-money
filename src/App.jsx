@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { useAuth } from './hooks/useAuth'
 import { ToastProvider } from './context/ToastContext'
 import { ConfirmProvider } from './context/ConfirmContext'
 import { FinanceProvider } from './context/FinanceContext'
@@ -8,6 +9,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 
 const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Income = lazy(() => import('./pages/Income'))
 const Expenses = lazy(() => import('./pages/Expenses'))
@@ -32,16 +34,27 @@ function PageFallback() {
   )
 }
 
+/** Remount finance state whenever the signed-in account changes. */
+function ScopedFinanceProvider({ children }) {
+  const { email } = useAuth()
+  return (
+    <FinanceProvider key={email || '__guest__'} accountEmail={email}>
+      {children}
+    </FinanceProvider>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
           <ConfirmProvider>
-            <FinanceProvider>
+            <ScopedFinanceProvider>
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
                   <Route element={<ProtectedRoute />}>
                     <Route element={<AppLayout />}>
                       <Route index element={<Dashboard />} />
@@ -57,7 +70,7 @@ export default function App() {
                   </Route>
                 </Routes>
               </Suspense>
-            </FinanceProvider>
+            </ScopedFinanceProvider>
           </ConfirmProvider>
         </ToastProvider>
       </AuthProvider>

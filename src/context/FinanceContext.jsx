@@ -3,6 +3,8 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useToast } from '../hooks/useToast'
 import { FinanceContext } from './contexts'
 import { STORAGE_KEY } from '../utils/constants'
+import { ACCOUNT_DATA_PREFIX } from '../utils/accounts'
+import { normalizeEmail } from '../utils/auth'
 import { createDemoData, createEmptyData } from '../utils/demoData'
 import { createId } from '../utils/id'
 import { formatCurrency, monthKey } from '../utils/format'
@@ -30,8 +32,11 @@ function normalizeData(input) {
   }
 }
 
-export function FinanceProvider({ children }) {
-  const [storedData, setStoredData] = useLocalStorage(STORAGE_KEY, createDemoData)
+export function FinanceProvider({ children, accountEmail = '' }) {
+  const account = normalizeEmail(accountEmail)
+  // A dedicated key per account keeps each signed-in user's records isolated.
+  const storageKey = account ? `${ACCOUNT_DATA_PREFIX}${account}` : STORAGE_KEY
+  const [storedData, setStoredData] = useLocalStorage(storageKey, account ? createEmptyData : createDemoData)
   const { notify } = useToast()
   const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth())
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear())
